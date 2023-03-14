@@ -19,6 +19,21 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
+      - name: Run Tests
+        run: mvn test
+
+      - name: Run tests and generate code coverage report
+        run: mvn verify
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v2
+        with:
+          name: code-coverage
+          path: target/site/jacoco/index.html
+
+      - name: Cat jacoco report
+        run: cat target/site/jacoco/index.html
+        
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

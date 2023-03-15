@@ -38,7 +38,7 @@ jobs:
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops-project-01
       
       - name: Wait for quality gate
-        uses: sonarsource/wait-for-quality-gate@main
+        uses: sonarsource/wait-for-quality-gate@master
         with:
           organization: devsecops-project-01
           projectKey: devsecops-project-01

@@ -31,20 +31,28 @@ jobs:
           name: code-coverage
           path: target/site/jacoco/index.html
 
+      - name: Upload report to S3 bucket
+        uses: shallwefootball/s3-upload-action@master
+        with:
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: ${{ secrets.AWS_BUCKET }}
+          source_dir: target/site/jacoco/*.html    
+
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops-project-01
       
-      - name: Wait for quality gate
-        uses: sonarsource/wait-for-quality-gate@master
+      - name: SonarQube Quality Gate check
+        uses: sonarsource/sonarqube-quality-gate-action@master
         with:
           organization: devsecops-project-01
           projectKey: devsecops-project-01
-          token: ${{ secrets.SONAR_TOKEN }}
-          # Timeout after 1 hour
-          timeout: '1h'
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          # Timeout after 5 hour
+          timeout-minutes: '5'
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -52,14 +60,6 @@ jobs:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
-      
-      - name: Upload report to S3 bucket
-        uses: shallwefootball/s3-upload-action@master
-        with:
-          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
-          aws_bucket: ${{ secrets.AWS_BUCKET }}
-          source_dir: target/site/jacoco/*.html
 
       - name: Update version file
         run: |

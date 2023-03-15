@@ -66,8 +66,8 @@ jobs:
 
       - name: Upload JaCoCo Report to S3  
         run: |
-          mv target/site/jacoco/index.html target/site/jacoco/${{ steps.determine_version.outputs.version }}.html
-          aws s3 cp target/site/jacoco/${{ steps.determine_version.outputs.version }}.html s3://devsecops-project-01/jacoco-reports/   
+          mv target/site/jacoco/index.html target/site/jacoco/${{ steps.version.outputs.version }}.html
+          aws s3 cp target/site/jacoco/${{ steps.version.outputs.version }}.html s3://devsecops-project-01/jacoco-reports/   
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2 

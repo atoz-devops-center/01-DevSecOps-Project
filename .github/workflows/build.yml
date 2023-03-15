@@ -38,7 +38,7 @@ jobs:
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops-project-01
       
       - name: Wait for quality gate
-        uses: sonarsource/wait-for-quality-gate@master
+        uses: sonarsource/wait-for-quality-gate@main
         with:
           organization: devsecops-project-01
           projectKey: devsecops-project-01
@@ -54,16 +54,12 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       
       - name: Upload report to S3 bucket
-        uses: aws-actions/amazon-s3-upload@v2
+        uses: shallwefootball/s3-upload-action@master
         with:
-          aws-region: ${{ secrets.AWS_REGION }}
-          bucket-name: devsecops-project-01
-          # Use the target directory where the JaCoCo report is generated
-          # For example, if the report is in "target/site/jacoco/index.html", set it to "target/site/jacoco/"
-          folder: target/site/jacoco/
-          # Use the target file extension for the JaCoCo report files
-          # For example, if the report files have ".html" extension, set it to "*.html"
-          pattern: "*.html"
+          aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY}}
+          aws_bucket: ${{ secrets.AWS_BUCKET }}
+          source_dir: target/site/jacoco/*.html
 
       - name: Update version file
         run: |

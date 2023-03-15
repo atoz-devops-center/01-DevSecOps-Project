@@ -13,7 +13,8 @@ FROM adoptopenjdk/openjdk11:alpine-slim
 VOLUME /tmp
 RUN addgroup --system javauser && adduser -S -s /bin/false -G javauser javauser
 WORKDIR /app
-COPY --from=build /app/app.jar .
+COPY --from=build --chown=javauser:javauser /app/app.jar .
+COPY --from=build --chown=javauser:javauser /app/.mvn ./.mvn
 RUN chown -R javauser:javauser /app
 USER javauser
 ENTRYPOINT ["java","-jar","app.jar"]

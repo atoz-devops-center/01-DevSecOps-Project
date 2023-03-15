@@ -23,7 +23,9 @@ jobs:
           distribution: 'zulu'
           java-version: 17
       - name: Run Tests
-        run: mvn test
+        run: |
+          mvn clean install
+          mvn test 
 
       - name: Run tests and generate code coverage report
         run: mvn verify
@@ -65,6 +67,7 @@ jobs:
           new_version=$(echo $current_version | awk -F. '{$3 = $3 + 1;} 1' OFS=".")
           echo $new_version > version
           echo "VERSION=$new_version" >> $GITHUB_OUTPUT
+
       - name: Upload JaCoCo Report to S3  
         run: |
           mv target/site/jacoco/index.html target/site/jacoco/${{ steps.version.outputs.VERSION }}.html
@@ -92,16 +95,16 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2 
 
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:${{ steps.version.outputs.VERSION }}
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
-          # cache-from: type=registry,ref=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
-          cache-to: type=inline
+      # - name: Build and push
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: .
+      #     push: true
+      #     tags: |
+      #       ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:${{ steps.version.outputs.VERSION }}
+      #       ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
+      #     # cache-from: type=registry,ref=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
+      #     cache-to: type=inline
       
       - uses: EndBug/add-and-commit@v7.0.0
         with:

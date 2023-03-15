@@ -18,6 +18,8 @@
     <java.version>17</java.version>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <maven.compiler.target>1.8</maven.compiler.target>
+    <maven.compiler.source>1.8</maven.compiler.source>
 
     <!-- Web dependencies -->
     <webjars-bootstrap.version>5.2.3</webjars-bootstrap.version>
@@ -112,6 +114,11 @@
       <artifactId>jakarta.xml.bind-api</artifactId>
     </dependency>
 
+    <dependency>
+      <groupId>io.spring.javaformat</groupId>
+      <artifactId>spring-javaformat-maven-plugin</artifactId>
+      <version>0.0.38</version>
+    </dependency>
   </dependencies>
 
   <build>
@@ -119,10 +126,11 @@
       <plugin>
         <groupId>io.spring.javaformat</groupId>
         <artifactId>spring-javaformat-maven-plugin</artifactId>
-        <version>${spring-format.version}</version>
+        <version>0.0.38</version>
         <executions>
           <execution>
             <phase>validate</phase>
+            <inherited>true</inherited>
             <goals>
               <goal>validate</goal>
             </goals>
@@ -216,6 +224,13 @@
         <configuration>
           <failOnNoGitDirectory>false</failOnNoGitDirectory>
           <failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
+        </configuration>
+      </plugin>
+      <plugin>    
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
         </configuration>
       </plugin>
 

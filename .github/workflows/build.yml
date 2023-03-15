@@ -47,7 +47,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: |
-          sonar-scanner
           if [ "$(curl --silent --request GET --header 'Content-Type: application/json' org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} | jq -r '.projectStatus.status')" != "OK" ]; then
             echo "Quality Gate failed"
             exit 1

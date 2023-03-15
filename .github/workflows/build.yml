@@ -23,7 +23,9 @@ jobs:
           distribution: 'zulu'
           java-version: 17
       - name: Run Tests
-        run: mvn test
+        run: |
+          mvn install
+          mvn test
 
       - name: Run tests and generate code coverage report
         run: mvn verify
@@ -80,7 +82,7 @@ jobs:
             ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:${{ steps.version.outputs.VERSION }}
             ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
           # cache-from: type=registry,ref=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
-          # cache-to: type=inline
+          cache-to: type=inline
       
       - uses: EndBug/add-and-commit@v7.0.0
         with:

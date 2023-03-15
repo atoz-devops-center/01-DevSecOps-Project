@@ -39,7 +39,7 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Upload JaCoCo Report to S3  
-        run: aws s3 cp target/site/jacoco/*.html s3://${{ secrets.AWS_BUCKET}}/     
+        run: aws s3 cp target/site/jacoco/*.html s3://devsecops-project-01/     
 
       - name: Build and analyze
         env:

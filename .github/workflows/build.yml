@@ -26,16 +26,68 @@ jobs:
         run: mvn verify
 
       - name: Upload code coverage report
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: code-coverage
           path: target/site/jacoco/index.html
 
-      - name: Cat jacoco report
-        run: cat target/site/jacoco/index.html
-        
       - name: Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=devsecops-project-01
+      
+      - name: Wait for quality gate
+        uses: sonarsource/wait-for-quality-gate@master
+        with:
+          organization: devsecops-project-01
+          projectKey: devsecops-project-01
+          token: ${{ secrets.SONAR_TOKEN }}
+          # Timeout after 1 hour
+          timeout: '1h'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      
+      - name: Upload report to S3 bucket
+        uses: aws-actions/amazon-s3-upload@v2
+        with:
+          aws-region: ${{ secrets.AWS_REGION }}
+          bucket-name: devsecops-project-01
+          # Use the target directory where the JaCoCo report is generated
+          # For example, if the report is in "target/site/jacoco/index.html", set it to "target/site/jacoco/"
+          folder: target/site/jacoco/
+          # Use the target file extension for the JaCoCo report files
+          # For example, if the report files have ".html" extension, set it to "*.html"
+          pattern: "*.html"
+
+      - name: Update version file
+        run: |
+          current_version=$(cat version)
+          new_version=$(echo $current_version | awk -F. '{$3 = $3 + 1;} 1' OFS=".")
+          echo $new_version > version
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2 
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:$new_version
+            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
+          cache-from: type=registry,ref=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
+          cache-to: type=inline
+      
+      - uses: EndBug/add-and-commit@v7.0.0
+        with:
+          add: version
+          message: "version updated with tag $new_version [skip ci]"
+          author_name: "Ganesh Balimidi"
+          author_email: "balimidi.ganesh@outlook.com"

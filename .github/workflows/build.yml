@@ -78,7 +78,7 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:$new_version
+            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:${{ steps.version.outputs.version }}
             ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
           cache-from: type=registry,ref=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
           cache-to: type=inline

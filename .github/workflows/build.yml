@@ -58,11 +58,12 @@ jobs:
           current_version=$(cat version)
           new_version=$(echo $current_version | awk -F. '{$3 = $3 + 1;} 1' OFS=".")
           echo $new_version > version
-          
+          cat version
+
       - name: Upload JaCoCo Report to S3  
         run: |
-          mv target/site/jacoco/index.html target/site/jacoco/index-$new_version.html
-          aws s3 cp target/site/jacoco/*.html s3://devsecops-project-01/jacoco-reports/   
+          mv target/site/jacoco/index.html target/site/jacoco/$new_version.html
+          aws s3 cp target/site/jacoco/$new_version.html s3://devsecops-project-01/jacoco-reports/   
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2 

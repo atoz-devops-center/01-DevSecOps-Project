@@ -22,7 +22,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
-
+      - run: chmod +x mvnw
       - name: SonarQube Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

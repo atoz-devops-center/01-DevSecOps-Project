@@ -77,7 +77,9 @@ jobs:
       #   run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
 
       - name: Run Snyk to check for vulnerabilities
-        run: mvn snyk:test -fn
+        run: |
+          mvn clean install
+          mvn snyk:test -fn
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 

@@ -35,9 +35,9 @@ jobs:
       - name: get new version
         id: version
         run: |
-          current_version=$(cat version)
+          current_version="$(cat version)"
           new_version="$(echo $current_version | awk -F. '{$3 = $3 + 1;} 1' OFS=".")"
-          echo $new_version > version
+          echo "$new_version" > version
           echo "VERSION=$new_version" >> $GITHUB_OUTPUT
 
     outputs:

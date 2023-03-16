@@ -29,35 +29,8 @@ jobs:
     outputs:
       VERSION: ${{ steps.version.outputs.VERSION }}
 
-  vault-secrets:
-    needs: [ code-checkout ]
-    name: Get Vault Secrets
-    runs-on: ubuntu-latest
-    steps:
-      - name: Import Secrets
-        id: import-secrets
-        uses: hashicorp/vault-action@v2
-        with:
-          url: http://13.233.72.146:8200/
-          token: ${{ secrets.VAULT_TOKEN }}
-          method: approle
-          roleId: ${{ secrets.VAULT_ROLEID }}
-          secretId: ${{ secrets.VAULT_SECRETID}}
-          secrets: |
-            secrets/creds/docker username | DOCKERHUB_USERNAME ;
-            secrets/creds/docker password | DOCKERHUB_PASSWORD ;
-            secrets/creds/aws access_key_id | AWS_ACCESS_KEY_ID ;
-            secrets/creds/aws access_secret_key | AWS_SECRET_ACCESS_KEY;
-            secrets/creds/sonar sonar-token | SONAR_TOKEN;
-            secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
-#     outputs:
-    #   AWS_ACCESS_KEY_ID: ${{ steps.import-secrets.outputs.AWS_ACCESS_KEY_ID }}
-    #   AWS_SECRET_ACCESS_KEY: ${{ steps.import-secrets.outputs.AWS_SECRET_ACCESS_KEY }}
-#       SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
-#       SONAR_PROJECT_KEY: ${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
-
   sonarqube-analysis:
-    needs: [ code-checkout, vault-secrets ]
+    needs: [ code-checkout ]
     name: Sonarqube Analyze
     runs-on: ubuntu-latest  
     steps:
@@ -79,113 +52,131 @@ jobs:
           roleId: ${{ secrets.VAULT_ROLEID }}
           secretId: ${{ secrets.VAULT_SECRETID}}
           secrets: |
-            secrets/creds/docker username | DOCKERHUB_USERNAME ;
-            secrets/creds/docker password | DOCKERHUB_PASSWORD ;
-            secrets/creds/aws access_key_id | AWS_ACCESS_KEY_ID ;
-            secrets/creds/aws access_secret_key | AWS_SECRET_ACCESS_KEY;
             secrets/creds/sonar sonar-token | SONAR_TOKEN;
             secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
           
       - run: chmod +x mvnw
-  #     - name: Cache SonarCloud packages
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.sonar/cache
-  #         key: ${{ runner.os }}-sonar
-  #         restore-keys: ${{ runner.os }}-sonar
-  #     - name: Cache Maven packages
-  #       uses: actions/cache@v3
-  #       with:
-  #         path: ~/.m2
-  #         key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-  #         restore-keys: ${{ runner.os }}-m2
-      - name: Get secrets
-        run: |
-          echo "SONAR_TOKEN = "${{ steps.import-secrets.outputs.SONAR_TOKEN }}""
-          echo "SONAR_PROJECT_KEY = "${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}""
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+  
       - name: SonarQube Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          SONAR_TOKEN: $SONAR_TOKEN
-        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=$SONAR_PROJECT_KEY
-       
-  #     # - name: SonarQube Quality Gate check
-  #     #   env:
-  #     #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-  #     #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  #     #   run: |
-  #     #     if [ "$(curl --silent --request GET --header 'Content-Type: application/json' org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} | jq -r '.projectStatus.status')" != "OK" ]; then
-  #     #       echo "Quality Gate failed"
-  #     #       exit 1
-  #     #     fi
-  # code-coverage:
-  #   needs: [ code-checkout, sonarqube-analysis, vault-secrets ]
-  #   name: Code Coverage and Jacoco Reports
-  #   runs-on: ubuntu-latest  
-  #   steps:    
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Run Tests
-  #       run: |
-  #         ./mvnw test
-
-  #     - name: Run tests and generate code coverage report
-  #       run: ./mvnw verify
-
-  #     - name: Upload code coverage report
-  #       uses: actions/upload-artifact@v3
-  #       with:
-  #         name: code-coverage
-  #         path: target/site/jacoco/index.html
-
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v2
-  #       with:
-  #         aws-access-key-id: ${{ needs.vault-secrets.outputs.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ needs.vault-secrets.outputs.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-
-  #     - name: Upload JaCoCo Report to S3  
-  #       run: |
-  #         mv target/site/jacoco/index.html target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html
-  #         aws s3 cp target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/     
-
-  # docker-build:
-  #   needs: [ code-checkout, sonarqube-analysis, vault-secrets ]
-  #   name: Docker Build and Push
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
-
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v2
-  #       with:
-  #         aws-access-key-id: ${{ needs.vault-secrets.outputs.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ needs.vault-secrets.outputs.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
+          SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
+      # - name: SonarQube Quality Gate check
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     if [ "$(curl --silent --request GET --header 'Content-Type: application/json' org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} | jq -r '.projectStatus.status')" != "OK" ]; then
+      #       echo "Quality Gate failed"
+      #       exit 1
+      #     fi
+  code-coverage:
+    needs: [ code-checkout, sonarqube-analysis ]
+    name: Code Coverage and Jacoco Reports
+    runs-on: ubuntu-latest  
+    steps:    
+      - name: Checkout
+        uses: actions/checkout@v3
       
-  #     - name: Login to Amazon ECR
-  #       id: login-ecr
-  #       uses: aws-actions/amazon-ecr-login@v1  
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: http://13.233.72.146:8200/
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLEID }}
+          secretId: ${{ secrets.VAULT_SECRETID}}
+          secrets: |
+            secrets/creds/aws access_key_id | AWS_ACCESS_KEY_ID ;
+            secrets/creds/aws access_secret_key | AWS_SECRET_ACCESS_KEY;
+      - name: Run Tests
+        run: |
+          ./mvnw test
 
-  #     - name: Set up Docker Buildx
-  #       uses: docker/setup-buildx-action@v2 
+      - name: Run tests and generate code coverage report
+        run: ./mvnw verify
 
-  #     - name: Build and push
-  #       uses: docker/build-push-action@v3
-  #       with:
-  #         context: .
-  #         push: true
-  #         tags: |
-  #           426558770866.dkr.ecr.ap-south-1.amazonaws.com/devsecops-project:${{ needs.code-checkout.outputs.VERSION }}
-  #           426558770866.dkr.ecr.ap-south-1.amazonaws.com/devsecops-project:latest
-  #         cache-to: type=inline
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage
+          path: target/site/jacoco/index.html
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ steps.import-secrets.outputs.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ steps.import-secrets.outputs.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Upload JaCoCo Report to S3  
+        run: |
+          mv target/site/jacoco/index.html target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html
+          aws s3 cp target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/     
+
+  docker-build:
+    needs: [ code-checkout, sonarqube-analysis ]
+    name: Docker Build and Push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: http://13.233.72.146:8200/
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLEID }}
+          secretId: ${{ secrets.VAULT_SECRETID}}
+          secrets: |
+            secrets/creds/docker username | DOCKERHUB_USERNAME ;
+            secrets/creds/docker password | DOCKERHUB_PASSWORD ;
+            secrets/creds/aws access_key_id | AWS_ACCESS_KEY_ID ;
+            secrets/creds/aws access_secret_key | AWS_SECRET_ACCESS_KEY;
+            
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ steps.import-secrets.outputs.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ steps.import-secrets.outputs.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
       
-  #     - uses: EndBug/add-and-commit@v7.0.0
-  #       with:
-  #         add: version
-  #         message: "version updated with tag $new_version [skip ci]"
-  #         author_name: "Ganesh Balimidi"
-  #         author_email: "balimidi.ganesh@outlook.com"
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1  
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2 
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: .
+          push: true
+          tags: |
+            426558770866.dkr.ecr.ap-south-1.amazonaws.com/devsecops-project:${{ needs.code-checkout.outputs.VERSION }}
+            426558770866.dkr.ecr.ap-south-1.amazonaws.com/devsecops-project:latest
+          cache-to: type=inline
+      
+      - uses: EndBug/add-and-commit@v7.0.0
+        with:
+          add: version
+          message: "version updated with tag $new_version [skip ci]"
+          author_name: "Ganesh Balimidi"
+          author_email: "balimidi.ganesh@outlook.com"

@@ -190,7 +190,7 @@ jobs:
           author_email: ${{ secrets.EMAIL }}
   
   Trivy :
-    needs: [docker-build]
+    needs: [docker-build, run-linters]
     name: Trivy Vulnerability Scanner for Containers
     runs-on: ubuntu-latest
     steps:

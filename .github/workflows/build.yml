@@ -76,9 +76,12 @@ jobs:
       #     SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
       #   run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
 
-      - name: Run Snyk to check for vulnerabilities
-        run: |
-          mvn snyk:test -fn
+      - uses: snyk/actions/setup@master
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.13'
+      - name: Snyk monitor
+        run: snyk test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 

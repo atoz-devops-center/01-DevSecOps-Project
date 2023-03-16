@@ -57,6 +57,7 @@ jobs:
           java-version: 17
       
       - run: chmod +x mvnw 
+      - run: chmod +x gradlew
       - name: Import Secrets
         id: import-secrets
         uses: hashicorp/vault-action@v2

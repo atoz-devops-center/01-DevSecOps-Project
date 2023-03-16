@@ -10,14 +10,27 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  code-checkout:
+  run-linters:
     name: Code Checkout
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
+      
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: 17
 
+      - name: Lint Code Base
+        uses: github/super-linter@v4
+        env:
+          VALIDATE_ALL_CODEBASE: false
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          
       - name: get new version
         id: version
         run: |
@@ -30,7 +43,7 @@ jobs:
       VERSION: ${{ steps.version.outputs.VERSION }}
 
   sonarqube-analysis:
-    needs: [ code-checkout ]
+    needs: [ run-linters ]
     name: Sonarqube Analyze
     runs-on: ubuntu-latest  
     steps:
@@ -167,13 +180,13 @@ jobs:
           context: .
           push: true
           tags: |
-            426558770866.dkr.ecr.ap-south-1.amazonaws.com/devsecops-project:${{ needs.code-checkout.outputs.VERSION }}
-            426558770866.dkr.ecr.ap-south-1.amazonaws.com/devsecops-project:latest
+            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_BUCKET }}:${{ needs.code-checkout.outputs.VERSION }}
+            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_BUCKET }}:latest
           cache-to: type=inline
       
       - uses: EndBug/add-and-commit@v7.0.0
         with:
           add: version
           message: "version updated with tag ${{ needs.code-checkout.outputs.VERSION }}"
-          author_name: "Ganesh Balimidi"
-          author_email: "balimidi.ganesh@outlook.com"
+          author_name: ${{ vars.NAME }}
+          author_email: ${{ vars.EMAIL }}

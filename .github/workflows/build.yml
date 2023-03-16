@@ -24,6 +24,20 @@ jobs:
           java-version: 17
 
       - run: chmod +x mvnw
+
+      - name: Cache SonarCloud packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v3
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+          
       - name: SonarQube Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
@@ -101,10 +115,12 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:${{ steps.version.outputs.VERSION }}
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
-          # cache-from: type=registry,ref=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
-          cache-to: type=inline
+            balimidi24/devsecops-petclinic:${{ steps.version.outputs.VERSION }}
+            balimidi24/devsecops-petclinic:latest
+          #   ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:${{ steps.version.outputs.VERSION }}
+          #   ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
+          # # cache-from: type=registry,ref=${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.DOCKER_CONTAINER_NAME }}:latest
+          # cache-to: type=inline
       
       - uses: EndBug/add-and-commit@v7.0.0
         with:

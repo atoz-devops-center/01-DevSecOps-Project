@@ -71,10 +71,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
-      - name: SONAR_PROJECT_KEY
-        run: |
-          echo "SONAR_TOKEN=$SONAR_TOKEN"
-          echo "SONAR_PROJECT_KEY=$SONAR_PROJECT_KEY"
+          
       - run: chmod +x mvnw
   #     - name: Cache SonarCloud packages
   #       uses: actions/cache@v3
@@ -92,9 +89,9 @@ jobs:
       - name: SonarQube Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          SONAR_TOKEN: $SONAR_TOKEN
-        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=$SONAR_PROJECT_KEY
-      
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ env.SONAR_PROJECT_KEY }}
+       
   #     # - name: SonarQube Quality Gate check
   #     #   env:
   #     #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

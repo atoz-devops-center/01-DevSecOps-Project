@@ -48,8 +48,8 @@ jobs:
             secrets/creds/docker password | DOCKERHUB_PASSWORD ;
             secrets/creds/aws access_key_id | AWS_ACCESS_KEY_ID ;
             secrets/creds/aws access_secret_key | AWS_SECRET_ACCESS_KEY;
-            secrets/creds/sonar sonar-token | SONAR_TOKEN
-            secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY
+            secrets/creds/sonar sonar-token | SONAR_TOKEN;
+            secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
     outputs:
       AWS_ACCESS_KEY_ID: ${{ steps.import-secrets.outputs.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ steps.import-secrets.outputs.AWS_SECRET_ACCESS_KEY }}
@@ -126,7 +126,7 @@ jobs:
           aws s3 cp target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/     
 
   docker-build:
-    needs: [ code-checkout, sonarqube-analysis, vault-secrets, code-coverage ]
+    needs: [ code-checkout, sonarqube-analysis, vault-secrets ]
     name: Docker Build and Push
     runs-on: ubuntu-latest
     steps:

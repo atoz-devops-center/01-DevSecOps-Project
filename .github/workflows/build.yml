@@ -103,6 +103,8 @@ jobs:
           secrets: |
             secrets/creds/aws access_key_id | AWS_ACCESS_KEY_ID ;
             secrets/creds/aws access_secret_key | AWS_SECRET_ACCESS_KEY;
+
+      - run: chmod +x mvnw      
       - name: Run Tests
         run: |
           ./mvnw test

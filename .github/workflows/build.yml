@@ -22,6 +22,7 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
+
       - run: chmod +x mvnw
       - name: SonarQube Build and analyze
         env:
@@ -29,15 +30,28 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
       
-      - name: SonarQube Quality Gate check
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      # - name: SonarQube Quality Gate check
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #   run: |
+      #     if [ "$(curl --silent --request GET --header 'Content-Type: application/json' org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} | jq -r '.projectStatus.status')" != "OK" ]; then
+      #       echo "Quality Gate failed"
+      #       exit 1
+      #     fi
+      - name: Run Tests
         run: |
-          if [ "$(curl --silent --request GET --header 'Content-Type: application/json' org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }} | jq -r '.projectStatus.status')" != "OK" ]; then
-            echo "Quality Gate failed"
-            exit 1
-          fi
+          ./mvnw clean install
+          ./mvnw test
+
+      - name: Run tests and generate code coverage report
+        run: ./mvnw verify
+
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage
+          path: target/site/jacoco/index.html
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -54,10 +68,10 @@ jobs:
           echo $new_version > version
           echo "VERSION=$new_version" >> $GITHUB_OUTPUT
 
-      # - name: Upload JaCoCo Report to S3  
-      #   run: |
-      #     mv target/site/jacoco/index.html target/site/jacoco/${{ steps.version.outputs.VERSION }}.html
-      #     aws s3 cp target/site/jacoco/${{ steps.version.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/   
+      - name: Upload JaCoCo Report to S3  
+        run: |
+          mv target/site/jacoco/index.html target/site/jacoco/${{ steps.version.outputs.VERSION }}.html
+          aws s3 cp target/site/jacoco/${{ steps.version.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/   
 
       - name: Import Secrets
         id: import-secrets

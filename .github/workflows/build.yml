@@ -85,6 +85,8 @@ jobs:
         run: snyk test
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - name: Synk test
+        run: ./mvnw snyk:test -fn
 
   # code-coverage:
   #   needs: [run-linters, sonarqube-analysis]

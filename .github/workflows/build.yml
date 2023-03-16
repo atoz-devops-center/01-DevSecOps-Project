@@ -11,7 +11,7 @@ on:
 
 jobs:
   run-linters:
-    name: Code Checkout
+    name: Run Linter
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -30,7 +30,7 @@ jobs:
           VALIDATE_ALL_CODEBASE: false
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          
+
       - name: get new version
         id: version
         run: |
@@ -76,7 +76,7 @@ jobs:
         run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
 
   code-coverage:
-    needs: [ code-checkout, sonarqube-analysis ]
+    needs: [ run-linters, sonarqube-analysis ]
     name: Code Coverage and Jacoco Reports
     runs-on: ubuntu-latest  
     steps:    
@@ -128,7 +128,7 @@ jobs:
           aws s3 cp target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/     
 
   docker-build:
-    needs: [ code-checkout, sonarqube-analysis ]
+    needs: [ run-linters, sonarqube-analysis ]
     name: Docker Build and Push
     runs-on: ubuntu-latest
     steps:

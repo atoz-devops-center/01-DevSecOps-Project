@@ -120,6 +120,10 @@ jobs:
     needs: [run-linters, sonarqube-analysis]
     name: Docker Build and Push
     runs-on: ubuntu-latest
+    env:
+      # image repo name
+      REPO_NAME: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_REPO_NAME }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -156,8 +160,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_BUCKET }}:${{ needs.run-linters.outputs.VERSION }}
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_BUCKET }}:latest
+            ${{ env.REPO_NAME }}:${{ needs.run-linters.outputs.VERSION }}
+            ${{ env.REPO_NAME }}:latest
           cache-to: type=inline
       
       - uses: EndBug/add-and-commit@v7.0.0

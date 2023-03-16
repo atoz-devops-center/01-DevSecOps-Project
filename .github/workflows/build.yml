@@ -101,8 +101,8 @@ jobs:
   #         restore-keys: ${{ runner.os }}-m2
       - name: Get secrets
         run: |
-          SONAR_TOKEN = "${{ steps.import-secrets.outputs.SONAR_TOKEN }}"
-          SONAR_PROJECT_KEY = "${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}"
+          echo "SONAR_TOKEN = "${{ steps.import-secrets.outputs.SONAR_TOKEN }}""
+          echo "SONAR_PROJECT_KEY = "${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}""
       - name: SonarQube Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}

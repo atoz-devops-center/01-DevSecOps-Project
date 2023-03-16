@@ -60,9 +60,6 @@ jobs:
     needs: [ code-checkout, vault-secrets ]
     name: Sonarqube Analyze
     runs-on: ubuntu-latest  
-    env:
-      SONAR_TOKEN: ${{ needs.vault-secrets.outputs.import-secrets.SONAR_TOKEN }}
-      SONAR_PROJECT_KEY: ${{ needs.vault-secrets.outputs.import-secrets.SONAR_PROJECT_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -71,6 +68,23 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
+      
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: http://13.233.72.146:8200/
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLEID }}
+          secretId: ${{ secrets.VAULT_SECRETID}}
+          secrets: |
+            secrets/creds/docker username | DOCKERHUB_USERNAME ;
+            secrets/creds/docker password | DOCKERHUB_PASSWORD ;
+            secrets/creds/aws access_key_id | AWS_ACCESS_KEY_ID ;
+            secrets/creds/aws access_secret_key | AWS_SECRET_ACCESS_KEY;
+            secrets/creds/sonar sonar-token | SONAR_TOKEN;
+            secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
           
       - run: chmod +x mvnw
   #     - name: Cache SonarCloud packages
@@ -89,8 +103,8 @@ jobs:
       - name: SonarQube Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          SONAR_TOKEN: ${{ needs.vault-secrets.outputs.import-secrets.SONAR_TOKEN }}
-        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ needs.vault-secrets.outputs.import-secrets.SONAR_PROJECT_KEY }}
+          SONAR_TOKEN: ${{ step.import-secrets.outputs.SONAR_TOKEN }}
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ step.import-secrets.outputs.SONAR_PROJECT_KEY }}
        
   #     # - name: SonarQube Quality Gate check
   #     #   env:

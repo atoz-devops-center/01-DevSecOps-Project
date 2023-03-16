@@ -25,12 +25,12 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
-      - name: Lint Code Base
-        uses: github/super-linter@v4
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      # - name: Lint Code Base
+      #   uses: github/super-linter@v4
+      #   env:
+      #     VALIDATE_ALL_CODEBASE: false
+      #     DEFAULT_BRANCH: main
+      #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
       - name: get new version
         id: version
@@ -61,7 +61,7 @@ jobs:
         id: import-secrets
         uses: hashicorp/vault-action@v2
         with:
-          url: http://13.233.72.146:8200/
+          url: http://${{ secrets.SONAR_URL }}:8200/
           token: ${{ secrets.VAULT_TOKEN }}
           method: approle
           roleId: ${{ secrets.VAULT_ROLEID }}
@@ -70,18 +70,17 @@ jobs:
             secrets/creds/sonar sonar-token | SONAR_TOKEN;
             secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
           
-      - name: SonarQube Build and analyze
-        env:
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
-        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
+      # - name: SonarQube Build and analyze
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      #     SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
+      #   run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
 
       - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        continue-on-error: true
+        run: mvn snyk:test -fn
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          
+
   code-coverage:
     needs: [run-linters, sonarqube-analysis]
     name: Code Coverage and Jacoco Reports

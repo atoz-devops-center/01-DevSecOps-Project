@@ -1,3 +1,4 @@
+---
 name: DevSecOps Pipeline
 on:
   push:
@@ -35,7 +36,7 @@ jobs:
         id: version
         run: |
           current_version=$(cat version)
-          new_version=$(echo $current_version | awk -F. '{$3 = $3 + 1;} 1' OFS=".")
+          new_version="$(echo $current_version | awk -F. '{$3 = $3 + 1;} 1' OFS=".")"
           echo $new_version > version
           echo "VERSION=$new_version" >> $GITHUB_OUTPUT
 
@@ -43,7 +44,7 @@ jobs:
       VERSION: ${{ steps.version.outputs.VERSION }}
 
   sonarqube-analysis:
-    needs: [ run-linters ]
+    needs: [run-linters]
     name: Sonarqube Analyze
     runs-on: ubuntu-latest  
     steps:
@@ -76,7 +77,7 @@ jobs:
         run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
 
   code-coverage:
-    needs: [ run-linters, sonarqube-analysis ]
+    needs: [run-linters, sonarqube-analysis]
     name: Code Coverage and Jacoco Reports
     runs-on: ubuntu-latest  
     steps:    
@@ -124,11 +125,11 @@ jobs:
 
       - name: Upload JaCoCo Report to S3  
         run: |
-          mv target/site/jacoco/index.html target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html
-          aws s3 cp target/site/jacoco/${{ needs.code-checkout.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/     
+          mv target/site/jacoco/index.html target/site/jacoco/${{ needs.run-linters.outputs.VERSION }}.html
+          aws s3 cp target/site/jacoco/${{ needs.run-linters.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/     
 
   docker-build:
-    needs: [ run-linters, sonarqube-analysis ]
+    needs: [run-linters, sonarqube-analysis]
     name: Docker Build and Push
     runs-on: ubuntu-latest
     steps:
@@ -180,13 +181,13 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_BUCKET }}:${{ needs.code-checkout.outputs.VERSION }}
+            ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_BUCKET }}:${{ needs.run-linters.outputs.VERSION }}
             ${{ secrets.ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_BUCKET }}:latest
           cache-to: type=inline
       
       - uses: EndBug/add-and-commit@v7.0.0
         with:
           add: version
-          message: "version updated with tag ${{ needs.code-checkout.outputs.VERSION }}"
-          author_name: ${{ vars.NAME }}
-          author_email: ${{ vars.EMAIL }}
+          message: "version updated with tag ${{ needs.run-linters.outputs.VERSION }}"
+          author_name: ${{ secrets.NAME }}
+          author_email: ${{ secrets.EMAIL }}

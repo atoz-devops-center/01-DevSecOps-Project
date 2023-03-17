@@ -85,8 +85,8 @@ jobs:
       - name: Upload JaCoCo Report to S3  
         run: |
           cd target/site/
-          mv jacoco jacoco-${{ needs.generate-version.outputs.VERSION }}
-          aws s3 cp jacoco-${{ needs.generate-version.outputs.VERSION }} s3://devsecops-project-01/jacoco-reports/  --recursive
+          jar -cvf ${{ needs.generate-version.outputs.VERSION }}.war jacoco/
+          aws s3 cp ${{ needs.generate-version.outputs.VERSION }}.war s3://devsecops-project-01/jacoco-reports/  --recursive
 
       - name: Import Secrets
         id: import-secrets

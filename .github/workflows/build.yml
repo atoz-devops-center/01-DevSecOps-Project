@@ -147,6 +147,7 @@ jobs:
 
       - name: Maven Install
         run: |
+          chmod +x mvnw
           mvn clean install 
           echo ${{ needs.run-linters.outputs.VERSION }} > version
 

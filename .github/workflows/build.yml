@@ -86,7 +86,7 @@ jobs:
         run: |
           cd target/site/
           jar -cvf ${{ needs.generate-version.outputs.VERSION }}.war jacoco/
-          aws s3 cp ${{ needs.generate-version.outputs.VERSION }}.war s3://devsecops-project-01/jacoco-reports/  --recursive
+          aws s3 cp *.war s3://devsecops-project-01/jacoco-reports/
 
       - name: Import Secrets
         id: import-secrets

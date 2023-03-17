@@ -202,10 +202,16 @@ jobs:
           severity: 'CRITICAL,HIGH'
           output: 'trivy-results.html'
 
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
+
       - name: Upload Trivy Report to S3  
         run: |
           mv trivy-results.html trivy-results-${{ needs.run-linters.outputs.VERSION }}.html
           aws s3 cp trivy-results-${{ needs.run-linters.outputs.VERSION }}.html s3://devsecops-project-01/trivy/ 
+
 
       
 

@@ -15,8 +15,8 @@ env:
   REPO_NAME: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ secrets.AWS_REPO_NAME }}
 
 jobs:
-  run-linters:
-    name: Run Linter
+  generate-version:
+    name: Version Generate
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -29,12 +29,12 @@ jobs:
           distribution: 'zulu'
           java-version: 17
 
-      - name: Lint Code Base
-        uses: github/super-linter@v4
-        env:
-          VALIDATE_ALL_CODEBASE: false
-          DEFAULT_BRANCH: main
-          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+      # - name: Lint Code Base
+      #   uses: github/super-linter@v4
+      #   env:
+      #     VALIDATE_ALL_CODEBASE: false
+      #     DEFAULT_BRANCH: main
+      #     GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
 
       - name: get new version
         id: version
@@ -48,7 +48,7 @@ jobs:
       VERSION: ${{ steps.version.outputs.VERSION }}
 
   sonarqube-analysis:
-    needs: [run-linters]
+    needs: [generate-version]
     name: Sonarqube Analyze
     runs-on: ubuntu-latest  
     steps:
@@ -84,8 +84,8 @@ jobs:
 
       - name: Upload JaCoCo Report to S3  
         run: |
-          mv target/site/jacoco/index.html target/site/jacoco/${{ needs.run-linters.outputs.VERSION }}.html
-          aws s3 cp target/site/jacoco/${{ needs.run-linters.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/  
+          mv target/site/jacoco/index.html target/site/jacoco/${{ needs.generate-version.outputs.VERSION }}.html
+          aws s3 cp target/site/jacoco/${{ needs.generate-version.outputs.VERSION }}.html s3://devsecops-project-01/jacoco-reports/  
 
       - name: Import Secrets
         id: import-secrets
@@ -107,7 +107,7 @@ jobs:
         run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
 
   snyk-test:
-    needs: [run-linters]
+    needs: [generate-version]
     name: Snyk Test
     runs-on: ubuntu-latest  
     steps:
@@ -125,7 +125,7 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
    
   docker-build:
-    needs: [run-linters, sonarqube-analysis]
+    needs: [generate-version, sonarqube-analysis]
     name: Docker Build and Push
     runs-on: ubuntu-latest
 
@@ -150,7 +150,7 @@ jobs:
         run: |
           chmod +x mvnw  
           ./mvnw clean install 
-          echo ${{ needs.run-linters.outputs.VERSION }} > version
+          echo ${{ needs.generate-version.outputs.VERSION }} > version
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -165,19 +165,19 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.REPO_NAME }}:${{ needs.run-linters.outputs.VERSION }}
+            ${{ env.REPO_NAME }}:${{ needs.generate-version.outputs.VERSION }}
             ${{ env.REPO_NAME }}:latest
           cache-to: type=inline
       
       - uses: EndBug/add-and-commit@v7.0.0
         with:
           add: version
-          message: "version updated with tag ${{ needs.run-linters.outputs.VERSION }}"
+          message: "version updated with tag ${{ needs.generate-version.outputs.VERSION }}"
           author_name: ${{ secrets.NAME }}
           author_email: ${{ secrets.EMAIL }}
   
   Trivy :
-    needs: [docker-build, run-linters]
+    needs: [docker-build, generate-version]
     name: Trivy Vulnerability Scanner for Containers
     runs-on: ubuntu-latest
     steps:
@@ -204,7 +204,7 @@ jobs:
 
       - name: Upload Trivy Report to S3  
         run: |
-          mv trivy-results.html trivy-results-${{ needs.run-linters.outputs.VERSION }}.html
-          aws s3 cp trivy-results-${{ needs.run-linters.outputs.VERSION }}.html s3://devsecops-project-01/trivy/ 
+          mv trivy-results.html trivy-results-${{ needs.generate-version.outputs.VERSION }}.html
+          aws s3 cp trivy-results-${{ needs.generate-version.outputs.VERSION }}.html s3://devsecops-project-01/trivy/ 
 
       

@@ -32,6 +32,12 @@
     <nohttp-checkstyle.version>0.0.11</nohttp-checkstyle.version>
     <spring-format.version>0.0.38</spring-format.version>
 
+    <jpa.database>POSTGRESQL</jpa.database>
+    <jdbc.driverClassName>org.postgresql.Driver</jdbc.driverClassName>
+    <jdbc.url>jdbc:postgresql://petclinic.cberhie1xsdp.ap-south-1.rds.amazonaws.com:5432/petclinic</jdbc.url>
+    <jdbc.username>postgres</jdbc.username>
+    <jdbc.password>petclinic</jdbc.password>
+
   </properties>
 
   <dependencies>

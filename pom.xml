@@ -16,10 +16,6 @@
 	<properties>
 		<jacoco.version>0.8.8</jacoco.version>
 		<java.version>17</java.version>
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<maven.compiler.target>1.8</maven.compiler.target>
-		<maven.compiler.source>1.8</maven.compiler.source>
 		<sonar.organization>devsecops-project-01</sonar.organization>
 		<sonar.host.url>https://sonarcloud.io</sonar.host.url>
 
@@ -28,7 +24,6 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
-			<version>3.0.4</version>
 		</dependency>
 
 		<dependency>
@@ -62,14 +57,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-			<plugin>
-				<groupId>io.github.git-commit-id</groupId>
-				<artifactId>git-commit-id-maven-plugin</artifactId>
-				<configuration>
-					<failOnNoGitDirectory>false</failOnNoGitDirectory>
-					<failOnUnableToExtractRepoInfo>false</failOnUnableToExtractRepoInfo>
-				</configuration>
 			</plugin>
 			<!-- # Changes for Software Composition Analysis Scan using Snyk  -->
 			<plugin>

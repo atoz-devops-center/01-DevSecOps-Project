@@ -59,13 +59,15 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: 17
-           
+      
+      - run: chmod +x mvnw 
+     
       - name: Run Tests
         run: |
-          mvn clean test
+          ./mvnw clean test
 
       - name: Run tests and generate code coverage report
-        run: mvn verify
+        run: ./mvnw verify
 
       - name: Upload code coverage report
         uses: actions/upload-artifact@v3
@@ -102,7 +104,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
           SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
 
   snyk-test:
     needs: [run-linters]
@@ -116,7 +118,6 @@ jobs:
       - uses: actions/setup-go@v1
         with:
           go-version: '1.13'
-
       - run: chmod +x mvnw
       - name: Snyk monitor
         run: snyk test
@@ -147,8 +148,8 @@ jobs:
 
       - name: Maven Install
         run: |
-          chmod +x mvnw
-          mvn clean install 
+          chmod +x mvnw  
+          ./mvnw clean install 
           echo ${{ needs.run-linters.outputs.VERSION }} > version
 
       - name: Login to Amazon ECR
@@ -201,16 +202,9 @@ jobs:
           severity: 'CRITICAL,HIGH'
           output: 'trivy-results.html'
 
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
-
       - name: Upload Trivy Report to S3  
         run: |
           mv trivy-results.html trivy-results-${{ needs.run-linters.outputs.VERSION }}.html
           aws s3 cp trivy-results-${{ needs.run-linters.outputs.VERSION }}.html s3://devsecops-project-01/trivy/ 
 
-
       
-

@@ -54,64 +54,64 @@ jobs:
           distribution: 'zulu'
           java-version: 17
       
-#       - name: Cache SonarQube packages
-#         uses: actions/cache@v1
-#         with:
-#           path: ~/.sonar/cache
-#           key: ${{ runner.os }}-sonar
+      - name: Cache SonarQube packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
           
-#           restore-keys: ${{ runner.os }}-sonar
-#       - name: Cache Maven packages
-#         uses: actions/cache@v1
-#         with:
-#           path: ~/.m2
-#           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-#       - run: chmod +x mvnw 
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v1
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+      - run: chmod +x mvnw 
      
-#       - name: Run Tests
-#         run: |
-#           ./mvnw clean test
+      - name: Run Tests
+        run: |
+          ./mvnw clean test
 
-#       - name: Run tests and generate code coverage report
-#         run: ./mvnw verify
+      - name: Run tests and generate code coverage report
+        run: ./mvnw verify
 
-#       - name: Upload code coverage report
-#         uses: actions/upload-artifact@v3
-#         with:
-#           name: code-coverage
-#           path: target/site/jacoco/index.html
+      - name: Upload code coverage report
+        uses: actions/upload-artifact@v3
+        with:
+          name: code-coverage
+          path: target/site/jacoco/index.html
 
-#       - name: Configure AWS credentials
-#         uses: aws-actions/configure-aws-credentials@v2
-#         with:
-#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-#           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Upload JaCoCo Report to S3  
-#         run: |
-#           cd target/site/
-#           jar -cvf ${{ needs.generate-version.outputs.VERSION }}.war jacoco/
-#           aws s3 cp *.war s3://devsecops-project-01/jacoco-reports/
+      - name: Upload JaCoCo Report to S3  
+        run: |
+          cd target/site/
+          jar -cvf ${{ needs.generate-version.outputs.VERSION }}.war jacoco/
+          aws s3 cp *.war s3://devsecops-project-01/jacoco-reports/
 
-#       - name: Import Secrets
-#         id: import-secrets
-#         uses: hashicorp/vault-action@v2
-#         with:
-#           url: http://${{ secrets.SONAR_URL }}:8200/
-#           token: ${{ secrets.VAULT_TOKEN }}
-#           method: approle
-#           roleId: ${{ secrets.VAULT_ROLEID }}
-#           secretId: ${{ secrets.VAULT_SECRETID}}
-#           secrets: |
-#             secrets/creds/sonar sonar-token | SONAR_TOKEN;
-#             secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
+      - name: Import Secrets
+        id: import-secrets
+        uses: hashicorp/vault-action@v2
+        with:
+          url: http://${{ secrets.SONAR_URL }}:8200/
+          token: ${{ secrets.VAULT_TOKEN }}
+          method: approle
+          roleId: ${{ secrets.VAULT_ROLEID }}
+          secretId: ${{ secrets.VAULT_SECRETID}}
+          secrets: |
+            secrets/creds/sonar sonar-token | SONAR_TOKEN;
+            secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
           
-#       - name: SonarQube Build and analyze
-#         env:
-#           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-#           SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
-#         run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
+      - name: SonarQube Build and analyze
+        env:
+          GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
+          SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
           
   snyk-test:
     needs: [generate-version]
@@ -155,13 +155,12 @@ jobs:
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-#       - name: Maven Install
-#         run: |
-#           chmod +x mvnw  
-#           ./mvnw clean install 
-#           echo ${{ needs.generate-version.outputs.VERSION }} > version
+      - name: Maven Install
+        run: |
+          chmod +x mvnw  
+          ./mvnw clean install 
+          echo ${{ needs.generate-version.outputs.VERSION }} > version
 
-      - run: chmod +x mvnw
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1  

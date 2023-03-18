@@ -44,7 +44,7 @@
         <hibernate.version>6.1.7.Final</hibernate.version>
         <hibernate-validator.version>8.0.0.Final</hibernate-validator.version>
         <hsqldb.version>2.7.1</hsqldb.version>
-        <h2database.version>2.1.214</h2database.version>
+        <!-- <h2database.version>2.1.214</h2database.version> -->
         <caffeine.version>3.1.5</caffeine.version>
 
         <!-- Logging -->
@@ -477,14 +477,14 @@
                 <jdbc.username>sa</jdbc.username>
                 <jdbc.password/>
             </properties>
-            <dependencies>
+            <!-- <dependencies>
                 <dependency>
                     <groupId>com.h2database</groupId>
                     <artifactId>h2</artifactId>
                     <version>${h2database.version}</version>
                     <scope>runtime</scope>
                 </dependency>
-            </dependencies>
+            </dependencies> -->
         </profile>
         <profile>
             <id>HSQLDB</id>

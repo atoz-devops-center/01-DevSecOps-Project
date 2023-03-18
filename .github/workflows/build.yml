@@ -112,36 +112,26 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
           SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
         run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
-
-      - name: SonarQube Quality Gate check
-        id: sonarqube-quality-gate-check
-        env:
-          SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
-        run: ./mvnw -B org.sonarsource.scanner.maven:sonar-maven-plugin:sonar-wait -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
-        continue-on-error: true
-
-      - name: Quality Gates
-        env:
-          SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
-        run: mvn sonar:sonar sonar-quality-gate:check
           
-  # snyk-test:
-  #   needs: [generate-version]
-  #   name: Snyk Test
-  #   runs-on: ubuntu-latest  
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+  snyk-test:
+    needs: [generate-version]
+    name: Snyk Test
+    runs-on: ubuntu-latest  
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  #     - uses: snyk/actions/setup@master
-  #     - uses: actions/setup-go@v1
-  #       with:
-  #         go-version: '1.13'
-  #     - run: chmod +x mvnw
-  #     - name: Snyk monitor
-  #       run: snyk test
-  #       env:
-  #         SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+      - uses: snyk/actions/setup@master
+      - uses: actions/setup-go@v1
+        with:
+          go-version: '1.13'
+      - run: chmod +x mvnw
+      - name: Snyk monitor
+        run: snyk test
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        continue-on-error: true
+        
    
   docker-build:
     needs: [generate-version, sonarqube-analysis]

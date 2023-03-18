@@ -1,4 +1,18 @@
-target/classes/com/example/demo/DemoApplication.class
-target/classes/application.properties
-target
+# Eclipse
+.settings/
+.classpath
+.project
+bin/
+
+# IntelliJ IDEA
+.idea
+*.iml
+
+# VS Code
 .vscode
+
+# Maven
+target/
+
+# OS
+.DS_Store

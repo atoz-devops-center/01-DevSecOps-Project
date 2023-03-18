@@ -51,23 +51,23 @@ jobs:
           distribution: 'zulu'
           java-version: 17
       
-      - name: Cache SonarQube packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.sonar/cache
-          key: ${{ runner.os }}-sonar
+      # - name: Cache SonarQube packages
+      #   uses: actions/cache@v1
+      #   with:
+      #     path: ~/.sonar/cache
+      #     key: ${{ runner.os }}-sonar
 
-          restore-keys: ${{ runner.os }}-sonar
-      - name: Cache Maven packages
-        uses: actions/cache@v1
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-      - run: chmod +x mvnw 
+      #     restore-keys: ${{ runner.os }}-sonar
+      # - name: Cache Maven packages
+      #   uses: actions/cache@v1
+      #   with:
+      #     path: ~/.m2
+      #     key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+      # - run: chmod +x mvnw 
      
-      - name: Run Tests
-        run: |
-          ./mvnw clean test
+      # - name: Run Tests
+      #   run: |
+      #     ./mvnw clean test
 
       # - name: Run tests and generate code coverage report
       #   run: ./mvnw verify

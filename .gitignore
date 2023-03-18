@@ -1,18 +1,4 @@
-# Eclipse
-.settings/
-.classpath
-.project
-bin/
-
-# IntelliJ IDEA
-.idea
-*.iml
-
-# VS Code
+target/classes/com/example/demo/DemoApplication.class
+target/classes/application.properties
+target
 .vscode
-
-# Maven
-target/
-
-# OS
-.DS_Store

@@ -159,7 +159,6 @@ jobs:
         run: |
           chmod +x mvnw  
           ./mvnw clean install 
-          echo ${{ needs.generate-version.outputs.VERSION }} > version
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -177,16 +176,37 @@ jobs:
             ${{ env.REPO_NAME }}:${{ needs.generate-version.outputs.VERSION }}
             ${{ env.REPO_NAME }}:latest
           cache-to: type=inline
-      
-      - uses: EndBug/add-and-commit@v7.0.0
+
+  version-update:
+    needs: [sonarqube-analysis, docker-build]
+    name: Docker Build and Push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the code
+        uses: actions/checkout@v3
         with:
-          add: version
-          message: "version updated with tag ${{ needs.generate-version.outputs.VERSION }}"
-          author_name: ${{ secrets.NAME }}
-          author_email: ${{ secrets.EMAIL }}
+          repository: .
+          ref: main
+          token: ${{ secrets.GIT_TOKEN }}
+      
+      - name: Getting Version from previous Jobs
+        run:  echo ${{ needs.generate-version.outputs.VERSION }} > version
+
+      - uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "version updated with tag ${{ needs.generate-version.outputs.VERSION }}"
+          branch: main
+          repository: .
+
+      # - uses: EndBug/add-and-commit@v7.0.0
+      #   with:
+      #     add: version
+      #     message: "version updated with tag ${{ needs.generate-version.outputs.VERSION }}"
+      #     author_name: ${{ secrets.NAME }}
+      #     author_email: ${{ secrets.EMAIL }}
   
   Trivy :
-    needs: [docker-build, generate-version]
+    needs: [docker-build, generate-version, version-update]
     name: Trivy Vulnerability Scanner for Containers
     runs-on: ubuntu-latest
     steps:
@@ -208,7 +228,7 @@ jobs:
           image-ref: '${{ env.REPO_NAME }}:latest'
           format: 'table'
           vuln-type: 'os,library'
-          severity: 'UNKNOWN,LOW,MEDIUM,CRITICAL,HIGH'
+          severity: 'MEDIUM,CRITICAL,HIGH'
           output: 'trivy-results.html'
 
       - name: Upload Trivy Report to S3  

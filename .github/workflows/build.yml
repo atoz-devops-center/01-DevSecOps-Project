@@ -179,31 +179,21 @@ jobs:
 
   version-update:
     needs: [sonarqube-analysis, docker-build]
-    name: Docker Build and Push
+    name: Push Version into Repository
     runs-on: ubuntu-latest
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
-        with:
-          repository: .
-          ref: main
-          token: ${{ secrets.GIT_TOKEN }}
       
       - name: Getting Version from previous Jobs
         run:  echo ${{ needs.generate-version.outputs.VERSION }} > version
 
-      - uses: stefanzweifel/git-auto-commit-action@v4
+      - uses: EndBug/add-and-commit@v7.0.0
         with:
-          commit_message: "version updated with tag ${{ needs.generate-version.outputs.VERSION }}"
-          branch: main
-          repository: .
-
-      # - uses: EndBug/add-and-commit@v7.0.0
-      #   with:
-      #     add: version
-      #     message: "version updated with tag ${{ needs.generate-version.outputs.VERSION }}"
-      #     author_name: ${{ secrets.NAME }}
-      #     author_email: ${{ secrets.EMAIL }}
+          add: version
+          message: "version updated with tag ${{ needs.generate-version.outputs.VERSION }}"
+          author_name: ${{ secrets.NAME }}
+          author_email: ${{ secrets.EMAIL }}
   
   Trivy :
     needs: [docker-build, generate-version, version-update]

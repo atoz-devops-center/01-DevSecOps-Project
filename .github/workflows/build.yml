@@ -208,7 +208,7 @@ jobs:
           image-ref: '${{ env.REPO_NAME }}:latest'
           format: 'table'
           vuln-type: 'os,library'
-          severity: 'CRITICAL,HIGH'
+          severity: 'UNKNOWN,LOW,MEDIUM,CRITICAL,HIGH'
           output: 'trivy-results.html'
 
       - name: Upload Trivy Report to S3  
@@ -216,4 +216,17 @@ jobs:
           mv trivy-results.html trivy-results-${{ needs.generate-version.outputs.VERSION }}.html
           aws s3 cp trivy-results-${{ needs.generate-version.outputs.VERSION }}.html s3://devsecops-project-01/trivy/ 
 
+      - name: Run Trivy vulnerability scanner in repo mode
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: 'trivy-results.sarif'
       

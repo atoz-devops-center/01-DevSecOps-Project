@@ -178,7 +178,7 @@ jobs:
           cache-to: type=inline
 
   version-update:
-    needs: [sonarqube-analysis, docker-build]
+    needs: [docker-build, generate-version]
     name: Push Version into Repository
     runs-on: ubuntu-latest
     steps:
@@ -196,7 +196,7 @@ jobs:
           author_email: ${{ secrets.EMAIL }}
   
   Trivy :
-    needs: [docker-build, generate-version, version-update]
+    needs: [docker-build, generate-version]
     name: Trivy Vulnerability Scanner for Containers
     runs-on: ubuntu-latest
     steps:

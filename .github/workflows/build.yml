@@ -116,24 +116,24 @@ jobs:
           jar -cvf ${{ needs.generate-version.outputs.VERSION }}.war jacoco/
           aws s3 cp *.war s3://devsecops-project-01/jacoco-reports/
 
-      - name: Import Secrets
-        id: import-secrets
-        uses: hashicorp/vault-action@v2
-        with:
-          url: http://${{ secrets.SONAR_URL }}:8200/
-          token: ${{ secrets.VAULT_TOKEN }}
-          method: approle
-          roleId: ${{ secrets.VAULT_ROLEID }}
-          secretId: ${{ secrets.VAULT_SECRETID}}
-          secrets: |
-            secrets/creds/sonar sonar-token | SONAR_TOKEN;
-            secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
+#       - name: Import Secrets
+#         id: import-secrets
+#         uses: hashicorp/vault-action@v2
+#         with:
+#           url: http://${{ secrets.SONAR_URL }}:8200/
+#           token: ${{ secrets.VAULT_TOKEN }}
+#           method: approle
+#           roleId: ${{ secrets.VAULT_ROLEID }}
+#           secretId: ${{ secrets.VAULT_SECRETID}}
+#           secrets: |
+#             secrets/creds/sonar sonar-token | SONAR_TOKEN;
+#             secrets/creds/sonar sonar-project-key | SONAR_PROJECT_KEY;
           
       - name: SonarQube Build and analyze
         env:
           GITHUB_TOKEN: ${{ secrets.GIT_TOKEN }}
-          SONAR_TOKEN: ${{ steps.import-secrets.outputs.SONAR_TOKEN }}
-        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ steps.import-secrets.outputs.SONAR_PROJECT_KEY }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./mvnw -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=${{ secrets.SONAR_PROJECT_KEY }}
           
   snyk-test:
     needs: [generate-version]

@@ -49,7 +49,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Build project with Maven
-        run: mvn clean install
+        run: ./mvnw clean install
         
       - name: Depcheck
         uses: dependency-check/Dependency-Check_Action@main

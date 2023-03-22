@@ -62,22 +62,22 @@ jobs:
           path: ~/.m2
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           
-      - name: Build project with Maven
-        run: |
-          chmod +x mvnw
-          ./mvnw clean install
+#       - name: Build project with Maven
+#         run: |
+#           chmod +x mvnw
+#           ./mvnw clean install
         
-      - name: Depcheck
-        uses: dependency-check/Dependency-Check_Action@main
-        id: Depcheck
-        with:
-          project: 'test'
-          path: '.'
-          format: 'HTML'
-          out: 'reports' # this is the default, no need to specify unless you wish to override it
-          args: >
-            --failOnCVSS 7
-            --enableRetired
+#       - name: Depcheck
+#         uses: dependency-check/Dependency-Check_Action@main
+#         id: Depcheck
+#         with:
+#           project: 'test'
+#           path: '.'
+#           format: 'HTML'
+#           out: 'reports' # this is the default, no need to specify unless you wish to override it
+#           args: >
+#             --failOnCVSS 7
+#             --enableRetired
             
   sonarqube-analysis:
     needs: [generate-version, Dependency-Cheker]

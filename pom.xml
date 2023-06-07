@@ -122,7 +122,7 @@
     <dependency>
       <groupId>io.spring.javaformat</groupId>
       <artifactId>spring-javaformat-maven-plugin</artifactId>
-      <version>0.0.38</version>
+      <version>0.0.39</version>
     </dependency>
 
       <dependency>
@@ -395,7 +395,7 @@
                         </goals>
                       </pluginExecutionFilter>
                       <action>
-                        <ignore />
+                        <ignore/>
                       </action>
                     </pluginExecution>
                     <pluginExecution>
@@ -408,7 +408,7 @@
                         </goals>
                       </pluginExecutionFilter>
                       <action>
-                        <ignore />
+                        <ignore/>
                       </action>
                     </pluginExecution>
                     <pluginExecution>
@@ -421,7 +421,7 @@
                         </goals>
                       </pluginExecutionFilter>
                       <action>
-                        <ignore />
+                        <ignore/>
                       </action>
                     </pluginExecution>
                   </pluginExecutions>
